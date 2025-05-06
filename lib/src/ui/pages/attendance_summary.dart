@@ -19,10 +19,11 @@ final Map<DateTime, List> _holidays = {
 };
 
 class AttendanceSummary extends StatefulWidget {
-  AttendanceSummary({Key key, this.title, this.user}) : super(key: key);
+  AttendanceSummary({Key? key, required this.title, required this.user})
+      : super(key: key);
 
   final String title;
-  final FirebaseUser user;
+  final User user;
 
   @override
   _AttendanceSummaryState createState() => _AttendanceSummaryState();
@@ -30,10 +31,11 @@ class AttendanceSummary extends StatefulWidget {
 
 class _AttendanceSummaryState extends State<AttendanceSummary>
     with TickerProviderStateMixin {
-  LinkedHashMap<DateTime, List> _events;
-  List _selectedEvents;
-  AnimationController _animationController;
-  DateTime _selectedDay;
+  late LinkedHashMap<DateTime, List> _events;
+  late List _selectedEvents;
+  late final AnimationController _animationController;
+  late DateTime _selectedDay;
+  CalendarFormat _calendarFormat = CalendarFormat.month;
 
   @override
   void initState() {
@@ -131,10 +133,15 @@ class _AttendanceSummaryState extends State<AttendanceSummary>
       focusedDay: DateTime.now(),
       firstDay: DateTime(2000),
       lastDay: DateTime.now(),
-      eventLoader: (dateTime) => _events[dateTime],
+      // eventLoader: (dateTime) => _events[dateTime]!,
+      onDaySelected: (DateTime selectedDay, DateTime focusedDay){
+        _selectedDay = selectedDay;
+          _onDaySelected(selectedDay, _selectedEvents);
+          _animationController.forward(from: 0.0);
+      },
       holidayPredicate: (dateTime) => _holidays
           .containsKey(DateTime(dateTime.year, dateTime.month, dateTime.day)),
-      calendarFormat: CalendarFormat.month,
+      calendarFormat: _calendarFormat,
       formatAnimationCurve: Curves.fastOutSlowIn,
       formatAnimationDuration: const Duration(milliseconds: 400),
       startingDayOfWeek: StartingDayOfWeek.sunday,
@@ -164,77 +171,72 @@ class _AttendanceSummaryState extends State<AttendanceSummary>
         formatButtonVisible: false,
       ),
       calendarBuilders: CalendarBuilders(
-        selectedBuilder: (context, date, _) {
-          return FadeTransition(
-            opacity: Tween(begin: 0.0, end: 1.0).animate(_animationController),
-            child: Container(
-              margin: const EdgeInsets.all(4.0),
-              padding: const EdgeInsets.only(top: 11.0, left: 12.0),
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.amber[500],
-              ),
-              width: 100,
-              height: 100,
-              child: Text(
-                '${date.day}',
-                style: TextStyle().copyWith(
-                    fontSize: 18.0,
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold),
-              ),
-            ),
-          );
-        },
-        todayBuilder: (context, date, _) {
-          return Container(
-            margin: const EdgeInsets.all(4.0),
-            padding: const EdgeInsets.only(top: 11.0, left: 12.0),
-            width: 100,
-            height: 100,
-            child: Text(
-              '${date.day}',
-              style: TextStyle().copyWith(
-                  fontSize: 18.0,
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold),
-            ),
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: Color.fromRGBO(29, 209, 161, 1.0),
-            ),
-          );
-        },
-        markersBuilder: (context, date, events, holidays) {
-          final children = <Widget>[];
+        // selectedBuilder: (context, date, _) {
+        //   return FadeTransition(
+        //     opacity: Tween(begin: 0.0, end: 1.0).animate(_animationController),
+        //     child: Container(
+        //       margin: const EdgeInsets.all(4.0),
+        //       padding: const EdgeInsets.only(top: 11.0, left: 12.0),
+        //       decoration: BoxDecoration(
+        //         shape: BoxShape.circle,
+        //         color: Colors.amber[500],
+        //       ),
+        //       width: 100,
+        //       height: 100,
+        //       child: Text(
+        //         '${date.day}',
+        //         style: TextStyle().copyWith(
+        //             fontSize: 18.0,
+        //             color: Colors.white,
+        //             fontWeight: FontWeight.bold),
+        //       ),
+        //     ),
+        //   );
+        // },
+        // todayBuilder: (context, date, _) {
+        //   return Container(
+        //     margin: const EdgeInsets.all(4.0),
+        //     padding: const EdgeInsets.only(top: 11.0, left: 12.0),
+        //     width: 100,
+        //     height: 100,
+        //     child: Text(
+        //       '${date.day}',
+        //       style: TextStyle().copyWith(
+        //           fontSize: 18.0,
+        //           color: Colors.white,
+        //           fontWeight: FontWeight.bold),
+        //     ),
+        //     decoration: BoxDecoration(
+        //       shape: BoxShape.circle,
+        //       color: Color.fromRGBO(29, 209, 161, 1.0),
+        //     ),
+        //   );
+        // },
+        // markersBuilder: (context, date, events, holidays) {
+        //   final children = <Widget>[];
 
-          if (events.isNotEmpty) {
-            children.add(
-              Positioned(
-                right: 1,
-                bottom: 1,
-                child: _buildEventsMarker(date, events),
-              ),
-            );
-          }
+        //   if (events.isNotEmpty) {
+        //     children.add(
+        //       Positioned(
+        //         right: 1,
+        //         bottom: 1,
+        //         child: _buildEventsMarker(date, events),
+        //       ),
+        //     );
+        //   }
 
-          if (holidays.isNotEmpty) {
-            children.add(
-              Positioned(
-                right: -2,
-                top: -2,
-                child: _buildHolidaysMarker(),
-              ),
-            );
-          }
-          return children;
-        },
+        //   if (holidays.isNotEmpty) {
+        //     children.add(
+        //       Positioned(
+        //         right: -2,
+        //         top: -2,
+        //         child: _buildHolidaysMarker(),
+        //       ),
+        //     );
+        //   }
+        //   return children;
+        // },
       ),
-      onDaySelected: (date, events) {
-        _selectedDay = date;
-        _onDaySelected(date, events);
-        _animationController.forward(from: 0.0);
-      },
     );
   }
 
@@ -243,11 +245,11 @@ class _AttendanceSummaryState extends State<AttendanceSummary>
       duration: const Duration(milliseconds: 300),
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: _calendarController.isSelected(date)
-            ? Colors.brown[500]
-            : _calendarController.isToday(date)
-                ? Colors.brown[300]
-                : Colors.blue[400],
+        // color: _calendarController.isSelected(date)
+        //     ? Colors.brown[500]
+        //     : _calendarController.isToday(date)
+        //         ? Colors.brown[300]
+        //         : Colors.blue[400],
       ),
       width: 16.0,
       height: 16.0,
@@ -287,26 +289,29 @@ class _AttendanceSummaryState extends State<AttendanceSummary>
                 style: TextStyle(color: Colors.white),
               ),
               onPressed: () {
-                setState(() {
-                  _calendarController.setCalendarFormat(CalendarFormat.month);
-                });
+                if (_calendarFormat != CalendarFormat.month) {
+                  setState(() {
+                    _calendarFormat = CalendarFormat.month;
+                  });
+                }
               },
             ),
-            ElevatedButton(
-              style: ButtonStyle(
-                backgroundColor: MaterialStateProperty.all(Colors.teal),
-              ),
-              child: Text(
-                '2 weeks',
-                style: TextStyle(color: Colors.white),
-              ),
-              onPressed: () {
-                setState(() {
-                  _calendarController
-                      .setCalendarFormat(CalendarFormat.twoWeeks);
-                });
-              },
-            ),
+            // ElevatedButton(
+            //   style: ButtonStyle(
+            //     backgroundColor: MaterialStateProperty.all(Colors.teal),
+            //   ),
+            //   child: Text(
+            //     '2 weeks',
+            //     style: TextStyle(color: Colors.white),
+            //   ),
+            //   onPressed: () {
+            //     if (_calendarFormat != CalendarFormat.twoWeeks) {
+            //       setState(() {
+            //         _calendarFormat = CalendarFormat.twoWeeks;
+            //       });
+            //     }
+            //   },
+            // ),
             ElevatedButton(
               style: ButtonStyle(
                 backgroundColor: MaterialStateProperty.all(Colors.redAccent),
@@ -316,9 +321,11 @@ class _AttendanceSummaryState extends State<AttendanceSummary>
                 style: TextStyle(color: Colors.white),
               ),
               onPressed: () {
-                setState(() {
-                  _calendarController.setCalendarFormat(CalendarFormat.week);
-                });
+                if (_calendarFormat != CalendarFormat.week) {
+                  setState(() {
+                    _calendarFormat = CalendarFormat.week;
+                  });
+                }
               },
             ),
           ],
